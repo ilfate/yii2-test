@@ -1,4 +1,6 @@
 assets/*
+vendor/*
+composer.phar
 !assets/.gitignore
 protected/runtime/*
 !protected/runtime/.gitignore
