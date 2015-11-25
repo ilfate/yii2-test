@@ -16,6 +16,8 @@ use yii\web\IdentityInterface;
  * @property string $password_reset_token
  * @property string $email
  * @property string $auth_key
+ * @property string $phone
+ * @property integer $avatar_id
  * @property integer $status
  * @property integer $created_at
  * @property integer $updated_at
@@ -52,6 +54,8 @@ class User extends ActiveRecord implements IdentityInterface
         return [
             ['status', 'default', 'value' => self::STATUS_ACTIVE],
             ['status', 'in', 'range' => [self::STATUS_ACTIVE, self::STATUS_DELETED]],
+            ['phone', 'length', 'max' => 20, 'tooLong' => 'Phone number should be less then 20 characters'],
+            ['avatar_id', 'exist', 'allowEmpty' => true, 'className' => 'Avatar', 'attributeName' => 'id'],
         ];
     }
 
