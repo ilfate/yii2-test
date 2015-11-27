@@ -1,6 +1,8 @@
 <?php
 namespace frontend\controllers;
 
+use common\models\Avatar;
+use common\models\User;
 use Yii;
 use common\models\LoginForm;
 use frontend\models\PasswordResetRequestForm;
@@ -12,11 +14,12 @@ use yii\web\BadRequestHttpException;
 use yii\web\Controller;
 use yii\filters\VerbFilter;
 use yii\filters\AccessControl;
+use yii\web\Response;
 
 /**
- * Site controller
+ * Profile controller
  */
-class SiteController extends Controller
+class ProfileController extends Controller
 {
     /**
      * @inheritdoc
@@ -26,26 +29,21 @@ class SiteController extends Controller
         return [
             'access' => [
                 'class' => AccessControl::className(),
-                'only' => ['logout', 'signup'],
+                'only' => ['index', 'edit'],
                 'rules' => [
                     [
-                        'actions' => ['signup'],
-                        'allow' => true,
-                        'roles' => ['?'],
-                    ],
-                    [
-                        'actions' => ['logout'],
+                        'actions' => ['index', 'edit'],
                         'allow' => true,
                         'roles' => ['@'],
-                    ],
+                    ]
                 ],
             ],
-            'verbs' => [
-                'class' => VerbFilter::className(),
-                'actions' => [
-                    'logout' => ['post'],
-                ],
-            ],
+//            'verbs' => [
+//                'class' => VerbFilter::className(),
+//                'actions' => [
+//                    'logout' => ['post'],
+//                ],
+//            ],
         ];
     }
 
@@ -57,13 +55,50 @@ class SiteController extends Controller
         return [
             'error' => [
                 'class' => 'yii\web\ErrorAction',
-            ]
+            ],
+            'captcha' => [
+                'class' => 'yii\captcha\CaptchaAction',
+                'fixedVerifyCode' => YII_ENV_TEST ? 'testme' : null,
+            ],
         ];
     }
 
     public function actionIndex()
     {
-        return $this->render('index');
+        $user = User::findIdentity(Yii::$app->user->identity->getId());
+        $avatar = $user->avatar;
+        if (!$avatar) {
+            $avatar = new Avatar();
+        }
+        return $this->render('index', [
+            'avatar' => $avatar->getUrl(),
+            'user' => $user,
+        ]);
+    }
+
+    public function actionEdit()
+    {
+        Yii::$app->response->format = Response::FORMAT_JSON;
+        if (!Yii::$app->request->isAjax) {
+            return [
+                'error' => 'Wrong request',
+                'code' => 404
+            ];
+        }
+        $data = Yii::$app->request->post();
+        $user = User::findIdentity(Yii::$app->user->identity->getId());
+        try {
+            $user->updateField($data['type'], $data['value']);
+        } catch (\Exception $e) {
+            return [
+                'error' => $e->getMessage(),
+                'code' => $e->getCode()
+            ];
+        }
+
+        return [
+            'code' => 200,
+        ];
     }
 
     public function actionLogin()
@@ -118,7 +153,7 @@ class SiteController extends Controller
         if ($model->load(Yii::$app->request->post())) {
             if ($user = $model->signup()) {
                 if (Yii::$app->getUser()->login($user)) {
-                    return $this->redirect('/profile');
+                    return $this->goHome();
                 }
             }
         }

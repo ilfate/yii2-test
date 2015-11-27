@@ -28,6 +28,18 @@ class User extends ActiveRecord implements IdentityInterface
     const STATUS_DELETED = 0;
     const STATUS_ACTIVE = 10;
 
+    const PHONE_MIN_LENGTH = 8;
+    const PHONE_MAX_LENGTH = 20;
+
+    const USERNAME_MIN_LENGTH = 3;
+    const USERNAME_MAX_LENGTH = 20;
+
+    protected static $editableFields = [
+        'email',
+        'phone',
+        'username'
+    ];
+
     /**
      * @inheritdoc
      */
@@ -54,8 +66,12 @@ class User extends ActiveRecord implements IdentityInterface
         return [
             ['status', 'default', 'value' => self::STATUS_ACTIVE],
             ['status', 'in', 'range' => [self::STATUS_ACTIVE, self::STATUS_DELETED]],
-            ['phone', 'length', 'max' => 20, 'tooLong' => 'Phone number should be less then 20 characters'],
-            ['avatar_id', 'exist', 'allowEmpty' => true, 'className' => 'Avatar', 'attributeName' => 'id'],
+            ['phone', 'string', 'length' => [self::PHONE_MIN_LENGTH, self::PHONE_MAX_LENGTH]],
+            ['username', 'string', 'length' => [self::USERNAME_MIN_LENGTH, self::USERNAME_MAX_LENGTH]],
+            ['username', 'match', 'pattern'=> '/^[A-Za-z0-9_]+$/u',
+                                  'message'=> 'Username should not contain special characters.'],
+            ['avatar_id', 'exist', 'targetClass' => 'Avatar', 'targetAttribute' => 'id'],
+            ['email', 'email'],
         ];
     }
 
@@ -188,5 +204,42 @@ class User extends ActiveRecord implements IdentityInterface
     public function removePasswordResetToken()
     {
         $this->password_reset_token = null;
+    }
+
+    /**
+     * Relation to avatar
+     *
+     * @return \yii\db\ActiveQuery
+     */
+    public function getAvatar()
+    {
+        return $this->hasOne(Avatar::className(), ['id' => 'avatar_id']);
+    }
+
+    /**
+     * @param $type
+     * @param $value
+     *
+     * @return bool
+     * @throws \Exception
+     */
+    public function updateField($type, $value)
+    {
+        if (!in_array($type, self::$editableFields)) {
+            throw new \Exception('wrong field type', 404);
+        }
+        $this->{$type} = strip_tags($value);
+        $result = $this->save();
+        if (!$result) {
+            $message = '';
+            $errors = $this->getErrors();
+            foreach ($errors as $errorArr) {
+                if (is_array($errorArr)) {
+                    $message[] = implode(', ', $errorArr);
+                }
+            }
+            throw new \Exception(implode(', ', $message), 404);
+        }
+        return $result;
     }
 }

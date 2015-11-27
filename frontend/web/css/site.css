@@ -89,3 +89,50 @@ a.desc:after {
     padding: 10px 20px;
     margin: 0 0 15px 0;
 }
+
+
+/* --- Profile --- */
+
+.profile .avatar {
+    width:100%;
+}
+
+.profile .user-name {
+    text-align: center;
+}
+
+.profile .avatar-container {
+    position: relative;
+    width: 100%;
+    height: auto;
+}
+
+.profile .avatar-container:hover .upload-avatar-button {
+    display:block;
+}
+.profile .upload-avatar-button {
+    position: absolute;
+    display: none;
+    bottom: 10px;
+    left:0;
+    right:0;
+}
+
+.profile .edit-icon, .profile .save-icon, .profile .remove-icon {
+    cursor: pointer;
+}
+.profile .edit-icon:hover {
+    color: #337ab7;
+}
+.profile .save-icon, .profile .remove-icon {
+    display:none;
+}
+.profile .edit-container input {
+    width:180px;
+}
+
+
+
+
+
+

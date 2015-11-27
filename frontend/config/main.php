@@ -25,6 +25,12 @@ return [
                 ],
             ],
         ],
+        'urlManager' => [
+            'enablePrettyUrl' => true,
+        ],
+        'assetManager' => [
+            'linkAssets' => true,
+        ],
         'errorHandler' => [
             'errorAction' => 'site/error',
         ],

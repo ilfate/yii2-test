@@ -6,6 +6,7 @@ use yii\base\NotSupportedException;
 use yii\behaviors\TimestampBehavior;
 use yii\db\ActiveRecord;
 use yii\web\IdentityInterface;
+use yii\web\User;
 
 /**
  * User model
@@ -17,6 +18,7 @@ use yii\web\IdentityInterface;
  */
 class Avatar extends ActiveRecord
 {
+    const AVATAR_PLACEHOLDER = '/images/avatar-placeholder.png';
 
     /**
      * @inheritdoc
@@ -49,5 +51,20 @@ class Avatar extends ActiveRecord
             return static::findOne(['id' => $user->avatar_id]);
         }
         return null;
+    }
+
+    public function getUrl()
+    {
+        return $this->url ?: self::AVATAR_PLACEHOLDER;
+    }
+
+    /**
+     * Relation with users
+     *
+     * @return \yii\db\ActiveQuery
+     */
+    public function getUsers()
+    {
+        return $this->hasMany(User::className(), ['avatar_id' => 'id']);
     }
 }
