@@ -2,7 +2,7 @@
 
 use yii\db\Migration;
 
-class m151125_162605_user_avatar_phone extends Migration
+class m151125_162605_userAvatarPhone extends Migration
 {
     public function up()
     {

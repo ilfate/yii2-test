@@ -1,5 +1,7 @@
 assets/*
 vendor/*
+frontend/web/images/uploads/*
+!frontend/web/images/uploads/.gitkeep
 composer.phar
 !assets/.gitignore
 protected/runtime/*

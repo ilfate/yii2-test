@@ -13,6 +13,7 @@ use yii\web\User;
  *
  * @property integer $id
  * @property string $url
+ * @property integer $creator_id
  * @property integer $created_at
  * @property integer $updated_at
  */
@@ -51,6 +52,18 @@ class Avatar extends ActiveRecord
             return static::findOne(['id' => $user->avatar_id]);
         }
         return null;
+    }
+
+    /**
+     * Finds avatar by id
+     *
+     * @param int $id
+     *
+     * @return null|static
+     */
+    public static function findById($id)
+    {
+        return static::findOne(['id' => $id]);
     }
 
     public function getUrl()

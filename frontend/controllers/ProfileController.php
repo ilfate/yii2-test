@@ -1,20 +1,14 @@
 <?php
 namespace frontend\controllers;
 
+use common\models\UploadForm;
 use common\models\Avatar;
 use common\models\User;
 use Yii;
-use common\models\LoginForm;
-use frontend\models\PasswordResetRequestForm;
-use frontend\models\ResetPasswordForm;
-use frontend\models\SignupForm;
-use frontend\models\ContactForm;
-use yii\base\InvalidParamException;
-use yii\web\BadRequestHttpException;
 use yii\web\Controller;
-use yii\filters\VerbFilter;
 use yii\filters\AccessControl;
 use yii\web\Response;
+use yii\web\UploadedFile;
 
 /**
  * Profile controller
@@ -29,10 +23,10 @@ class ProfileController extends Controller
         return [
             'access' => [
                 'class' => AccessControl::className(),
-                'only' => ['index', 'edit'],
+                'only' => ['index', 'edit', 'avatars', 'upload', 'delete-avatar'],
                 'rules' => [
                     [
-                        'actions' => ['index', 'edit'],
+                        'actions' => ['index', 'edit', 'avatars', 'upload', 'delete-avatar'],
                         'allow' => true,
                         'roles' => ['@'],
                     ]
@@ -70,6 +64,56 @@ class ProfileController extends Controller
         ]);
     }
 
+    public function actionAvatars()
+    {
+        $user = User::findIdentity(Yii::$app->user->identity->getId());
+        $uploadModel = new UploadForm();
+        if (Yii::$app->request->isPost) {
+            $result = [ 'code' => 500 ];
+            Yii::$app->response->format = Response::FORMAT_JSON;
+            $uploadModel->file = UploadedFile::getInstanceByName('file');
+
+            if ($uploadModel->file && $uploadModel->validate()) {
+
+                $pathToFile = '/images/uploads/'
+                    . Yii::$app->security->generateRandomString()
+                    . '.' . $uploadModel->file->extension;
+
+                if ($uploadModel->file->saveAs(Yii::getAlias('@webroot') . $pathToFile)) {
+                    if ($user->newAvatar($pathToFile)) {
+                        $result['code'] = 200;
+                    }
+
+                }
+            } else {
+                $result['errors'] = $uploadModel->getErrors();
+            }
+            return $result;
+        }
+        $avatars = $user->uploadedAvatars;
+        return $this->render('avatars', [
+            'avatars' => $avatars,
+            'currentAvatar' => $user->avatar_id,
+            'uploadModel' => $uploadModel,
+        ]);
+    }
+
+    public function actionDeleteAvatar()
+    {
+        $user = User::findIdentity(Yii::$app->user->identity->getId());
+        $data = Yii::$app->request->post();
+        $avatar = Avatar::findById((int) $data['avatar_id']);
+        if ($avatar) {
+            if ($user->avatar_id == $avatar->id) {
+                $user->avatar_id = null;
+                $user->save();
+            }
+            $avatar->delete();
+        }
+
+        return $this->redirect('/profile/avatars');
+    }
+
     public function actionEdit()
     {
         // TODO: CSRF protection
@@ -94,5 +138,14 @@ class ProfileController extends Controller
         return [
             'code' => 200,
         ];
+    }
+
+    public function actionUpload()
+    {
+
+        $model = new UploadForm();
+
+
+
     }
 }

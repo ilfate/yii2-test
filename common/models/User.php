@@ -70,7 +70,7 @@ class User extends ActiveRecord implements IdentityInterface
             ['username', 'string', 'length' => [self::USERNAME_MIN_LENGTH, self::USERNAME_MAX_LENGTH]],
             ['username', 'match', 'pattern'=> '/^[A-Za-z0-9_]+$/u',
                                   'message'=> 'Username should not contain special characters.'],
-            ['avatar_id', 'exist', 'targetClass' => 'Avatar', 'targetAttribute' => 'id'],
+            ['avatar_id', 'exist', 'targetClass' => 'common\models\Avatar', 'targetAttribute' => 'id'],
             ['email', 'email'],
         ];
     }
@@ -216,6 +216,11 @@ class User extends ActiveRecord implements IdentityInterface
         return $this->hasOne(Avatar::className(), ['id' => 'avatar_id']);
     }
 
+    public function getUploadedAvatars()
+    {
+        return $this->hasMany(Avatar::className(), ['creator_id' => 'id']);
+    }
+
     /**
      * @param $type
      * @param $value
@@ -241,5 +246,22 @@ class User extends ActiveRecord implements IdentityInterface
             throw new \Exception(implode(', ', $message), 404);
         }
         return $result;
+    }
+
+    /**
+     * @param string $url
+     *
+     * @return bool
+     */
+    public function newAvatar($url)
+    {
+        $avatar = new Avatar();
+        $avatar->creator_id = $this->id;
+        $avatar->url = $url;
+        if (!$avatar->save()) {
+            return false;
+        }
+        $this->avatar_id = $avatar->id;
+        return $this->save();
     }
 }

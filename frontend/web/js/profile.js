@@ -97,4 +97,11 @@ $(document).ready(function(){
     $('.save-icon').on('click', function() {
         $(this).saveFieldChange();
     })
+
+    if ($('#dropzone').length) {
+        var avatarDropzone = new Dropzone("#dropzone");
+        avatarDropzone.on("complete", function(file) {
+            window.location = "/profile";
+        });
+    }
 });

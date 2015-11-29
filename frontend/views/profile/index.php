@@ -36,7 +36,7 @@ $this->title = 'My Profile (' . Yii::$app->user->identity->username . ')';
             <div class="col-lg-3">
                 <div class="avatar-container">
                     <img src="<?= $avatar ?>" alt="Your avatar" class="avatar img-thumbnail" />
-                    <a class="upload-avatar-button btn btn-primary">Upload avatar</a>
+                    <a class="upload-avatar-button btn btn-primary" href="/profile/avatars">Upload avatar</a>
                 </div>
                 <h2 data-edit="username" class="user-name edit-container">
                     <span class="user-data username"><?= $user->username ?></span>
