@@ -140,14 +140,30 @@ a.desc:after {
     font-size: 20px;
 }
 
+.avatars .image-container {
+    height: 200px;
+    overflow: hidden;
+    position: relative;
+    margin-top: 10px;
+}
+.avatars .image-container.active {
+    border:3px solid green;
+}
 .avatars .avatar-image {
     width:100%;
     margin-top: 20px;
-    min-height: 100px;
+
 }
-.avatars .avatar-image.active {
-    width:99%;
-    border:3px solid green;
+
+.avatars .delete-form {
+    position:absolute;
+    margin-top: 50px;
+    right:0;
+}
+.avatars .activate-form {
+    position:absolute;
+
+    margin-top: 50px;
 }
 
 

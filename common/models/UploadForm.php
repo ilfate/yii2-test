@@ -22,7 +22,7 @@ class UploadForm extends Model
     {
         return [
             [['file'], 'file'],
-            [['file'], 'file', 'extensions' => 'jpg, gif, png'],
+            [['file'], 'file', 'extensions' => 'jpg, gif, png', 'maxSize' => 1180*1180],
         ];
     }
 }

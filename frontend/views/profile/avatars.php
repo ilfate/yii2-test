@@ -25,19 +25,25 @@ $this->title = 'My avatars';
         <div class="row avatars-row">
             <?php foreach($avatars as $avatar): ?>
                 <div class="col-lg-2">
-                    <img class="avatar-image <?= $avatar->id == $currentAvatar ? 'active' : '' ?>"
-                         src="<?= $avatar->url ?>" />
-                    <form method="post" action="/profile/delete-avatar">
-                        <button type="submit" class="btn btn-warning">Delete</button>
+                    <div class="image-container <?= $avatar->id == $currentAvatar ? 'active' : '' ?>">
+                        <form class="delete-form" method="post" action="/profile/delete-avatar">
+                            <button type="submit" class="btn btn-warning">Delete</button>
 
-                        <input type="hidden" name="_csrf" value="<?= Yii::$app->request->getCsrfToken() ?>" />
-                        <input type="hidden" name="avatar_id" value="<?= $avatar->id ?>" />
-                    </form>
+                            <input type="hidden" name="_csrf" value="<?= Yii::$app->request->getCsrfToken() ?>" />
+                            <input type="hidden" name="avatar_id" value="<?= $avatar->id ?>" />
+                        </form>
 
-                    <?php if ($avatar->id !== $currentAvatar) : ?>
-                        <a class="btn btn-info">Activate</a>
-                    <?php endif; ?>
+                        <?php if ($avatar->id !== $currentAvatar) : ?>
+                            <form class="activate-form" method="post" action="/profile/activate-avatar">
+                                <button type="submit" class="btn btn-info">Activate</button>
 
+                                <input type="hidden" name="_csrf" value="<?= Yii::$app->request->getCsrfToken() ?>" />
+                                <input type="hidden" name="avatar_id" value="<?= $avatar->id ?>" />
+                            </form>
+                        <?php endif; ?>
+                        <img class="avatar-image"
+                             src="<?= $avatar->url ?>" />
+                    </div>
 
                 </div>
             <?php endforeach; ?>

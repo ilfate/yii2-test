@@ -1,6 +1,9 @@
 <?php
 namespace frontend\controllers;
 
+use common\models\User;
+use frontend\models\DeleteAccountForm;
+use frontend\models\DeleteAccountRequestForm;
 use Yii;
 use common\models\LoginForm;
 use frontend\models\PasswordResetRequestForm;
@@ -130,6 +133,7 @@ class SiteController extends Controller
 
     public function actionRequestPasswordReset()
     {
+
         $model = new PasswordResetRequestForm();
         if ($model->load(Yii::$app->request->post()) && $model->validate()) {
             if ($model->sendEmail()) {
@@ -144,6 +148,23 @@ class SiteController extends Controller
         return $this->render('requestPasswordResetToken', [
             'model' => $model,
         ]);
+    }
+
+    public function actionRequestDeleteAccount()
+    {
+        $user = User::findIdentity(Yii::$app->user->identity->getId());
+        $model = new DeleteAccountRequestForm();
+        if ($model->sendEmail($user->email)) {
+            Yii::$app->getSession()->setFlash('success', 'Check your email for further instructions.');
+
+            return $this->goHome();
+        } else {
+            Yii::$app->getSession()->setFlash('error', 'Sorry, we are unable to reset password for email provided.');
+        }
+
+
+        Yii::$app->getSession()->setFlash('warning', 'Check your email for further instructions.');
+        return $this->redirect('/profile');
     }
 
     public function actionResetPassword($token)
@@ -163,5 +184,20 @@ class SiteController extends Controller
         return $this->render('resetPassword', [
             'model' => $model,
         ]);
+    }
+
+    public function actionDeleteAccount($token)
+    {
+        try {
+            $model = new DeleteAccountForm($token);
+            if ($model->deleteAccount()) {
+                Yii::$app->user->logout();
+            }
+        } catch (InvalidParamException $e) {
+            throw new BadRequestHttpException($e->getMessage());
+        }
+
+        Yii::$app->getSession()->setFlash('warning', 'Your account was deleted');
+        return $this->redirect('/');
     }
 }

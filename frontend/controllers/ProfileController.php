@@ -23,10 +23,10 @@ class ProfileController extends Controller
         return [
             'access' => [
                 'class' => AccessControl::className(),
-                'only' => ['index', 'edit', 'avatars', 'upload', 'delete-avatar'],
+                'only' => ['index', 'edit', 'avatars', 'upload', 'delete-avatar', 'activate-avatar'],
                 'rules' => [
                     [
-                        'actions' => ['index', 'edit', 'avatars', 'upload', 'delete-avatar'],
+                        'actions' => ['index', 'edit', 'avatars', 'upload', 'delete-avatar', 'activate-avatar'],
                         'allow' => true,
                         'roles' => ['@'],
                     ]
@@ -51,6 +51,11 @@ class ProfileController extends Controller
         ];
     }
 
+    /**
+     * profile page
+     *
+     * @return string
+     */
     public function actionIndex()
     {
         $user = User::findIdentity(Yii::$app->user->identity->getId());
@@ -64,6 +69,11 @@ class ProfileController extends Controller
         ]);
     }
 
+    /**
+     * page with list of user's avatars
+     *
+     * @return array|string
+     */
     public function actionAvatars()
     {
         $user = User::findIdentity(Yii::$app->user->identity->getId());
@@ -98,6 +108,11 @@ class ProfileController extends Controller
         ]);
     }
 
+    /**
+     * Delete avatar
+     *
+     * @return Response
+     */
     public function actionDeleteAvatar()
     {
         $user = User::findIdentity(Yii::$app->user->identity->getId());
@@ -108,15 +123,40 @@ class ProfileController extends Controller
                 $user->avatar_id = null;
                 $user->save();
             }
-            $avatar->delete();
+            $url = $avatar->url;
+            if ($avatar->delete()) {
+                unlink(Yii::getAlias('@webroot') . $url);
+            }
         }
 
         return $this->redirect('/profile/avatars');
     }
 
+    /**
+     * Activate avatar if it belongs to this user
+     *
+     * @return Response
+     */
+    public function actionActivateAvatar()
+    {
+        $user = User::findIdentity(Yii::$app->user->identity->getId());
+        $data = Yii::$app->request->post();
+        $avatar = Avatar::findById((int) $data['avatar_id']);
+        if ($avatar->creator_id == $user->id) {
+            $user->avatar_id = $avatar->id;
+            $user->save();
+        }
+
+        return $this->redirect('/profile');
+    }
+
+    /**
+     * Edit one field in user profile
+     *
+     * @return array
+     */
     public function actionEdit()
     {
-        // TODO: CSRF protection
         Yii::$app->response->format = Response::FORMAT_JSON;
         if (!Yii::$app->request->isAjax) {
             return [
@@ -138,14 +178,5 @@ class ProfileController extends Controller
         return [
             'code' => 200,
         ];
-    }
-
-    public function actionUpload()
-    {
-
-        $model = new UploadForm();
-
-
-
     }
 }

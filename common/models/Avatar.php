@@ -70,14 +70,4 @@ class Avatar extends ActiveRecord
     {
         return $this->url ?: self::AVATAR_PLACEHOLDER;
     }
-
-    /**
-     * Relation with users
-     *
-     * @return \yii\db\ActiveQuery
-     */
-    public function getUsers()
-    {
-        return $this->hasMany(User::className(), ['avatar_id' => 'id']);
-    }
 }

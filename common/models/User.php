@@ -14,6 +14,7 @@ use yii\web\IdentityInterface;
  * @property string $username
  * @property string $password_hash
  * @property string $password_reset_token
+ * @property string $delete_account_token
  * @property string $email
  * @property string $auth_key
  * @property string $phone
@@ -72,6 +73,7 @@ class User extends ActiveRecord implements IdentityInterface
                                   'message'=> 'Username should not contain special characters.'],
             ['avatar_id', 'exist', 'targetClass' => 'common\models\Avatar', 'targetAttribute' => 'id'],
             ['email', 'email'],
+            ['email', 'unique'],
         ];
     }
 
@@ -121,6 +123,24 @@ class User extends ActiveRecord implements IdentityInterface
     }
 
     /**
+     * Finds user by delete account token
+     *
+     * @param string $token password reset token
+     * @return static|null
+     */
+    public static function findByDeleteAccountToken($token)
+    {
+        if (!static::isDeleteAccountTokenValid($token)) {
+            return null;
+        }
+
+        return static::findOne([
+            'delete_account_token' => $token,
+            'status' => self::STATUS_ACTIVE,
+        ]);
+    }
+
+    /**
      * Finds out if password reset token is valid
      *
      * @param string $token password reset token
@@ -128,10 +148,41 @@ class User extends ActiveRecord implements IdentityInterface
      */
     public static function isPasswordResetTokenValid($token)
     {
+        return self::isTokenValid($token, 'password');
+    }
+
+    /**
+     * Finds out if delete account reset token is valid
+     *
+     * @param string $token delete account token
+     * @return boolean
+     */
+    public static function isDeleteAccountTokenValid($token)
+    {
+        return self::isTokenValid($token, 'deleteAccount');
+    }
+
+    /**
+     * @param $token
+     * @param $type
+     *
+     * @return bool
+     */
+    protected static function isTokenValid($token, $type)
+    {
         if (empty($token)) {
             return false;
         }
-        $expire = Yii::$app->params['user.passwordResetTokenExpire'];
+        switch ($type)
+        {
+            case 'deleteAccount':
+                $expire = Yii::$app->params['user.deleteAccountTokenExpire'];
+                break;
+            default:
+            case 'password':
+                $expire = Yii::$app->params['user.passwordResetTokenExpire'];
+                break;
+        }
         $parts = explode('_', $token);
         $timestamp = (int) end($parts);
         return $timestamp + $expire >= time();
@@ -199,11 +250,27 @@ class User extends ActiveRecord implements IdentityInterface
     }
 
     /**
+     * Generates new password reset token
+     */
+    public function generateDeleteAccountToken()
+    {
+        $this->delete_account_token = Yii::$app->security->generateRandomString() . '_' . time();
+    }
+
+    /**
      * Removes password reset token
      */
     public function removePasswordResetToken()
     {
         $this->password_reset_token = null;
+    }
+
+    /**
+     * Removes password reset token
+     */
+    public function removeDeleteAccountToken()
+    {
+        $this->delete_account_token = null;
     }
 
     /**
